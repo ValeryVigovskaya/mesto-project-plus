@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import Card from '../models/card';
 import NotFoundError from '../errors/not-found-err';
 import BadRequestError from '../errors/bad-request-err';
+import { CREATED } from '../constants/constants';
 
 export const getCards = (req: Request, res: Response, next: NextFunction) => {
   Card.find({})
@@ -17,13 +18,13 @@ export const createCard = (req: Request, res: Response, next: NextFunction) => {
     // eslint-disable-next-line no-underscore-dangle
     Card.create({ name, link, owner: req.user._id })
       // возвращаем записанные в базу данные пользователю
-      .then((card) => res.send({ data: card }))
+      .then((card) => res.status(CREATED).send({ data: card }))
       // если данные не записались, вернём ошибку
       .catch((err) => {
         if (err.name === 'ValidationError') {
           next(new BadRequestError('Введены некорректные данные'));
         } else {
-          next();
+          next(err);
         }
       })
   );
@@ -53,13 +54,7 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
       }
       res.send({ data: card });
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Введены некорректные данные'));
-      } else {
-        next();
-      }
-    });
+    .catch(next);
 };
 
 export const dislikeCard = (req: Request, res: Response, next: NextFunction) => {
@@ -75,11 +70,5 @@ export const dislikeCard = (req: Request, res: Response, next: NextFunction) => 
       }
       res.send({ data: card });
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError('Введены некорректные данные'));
-      } else {
-        next();
-      }
-    });
+    .catch(next);
 };

@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import User from '../models/user';
 import NotFoundError from '../errors/not-found-err';
 import BadRequestError from '../errors/bad-request-err';
+import { CREATED } from '../constants/constants';
 
 // const router = Router();
 
@@ -20,7 +21,13 @@ export const getUserById = async (req: Request, res: Response, next: NextFunctio
       }
       res.send({ data: user });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Введены некорректные данные'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -29,13 +36,13 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
   return (
     User.create({ name, about, avatar })
       // возвращаем записанные в базу данные пользователю
-      .then((user) => res.send({ data: user }))
+      .then((user) => res.status(CREATED).send({ data: user }))
       // если данные не записались, вернём ошибку
       .catch((err) => {
         if (err.name === 'ValidationError') {
           next(new BadRequestError('Введены некорректные данные'));
         } else {
-          next();
+          next(err);
         }
       })
   );
@@ -56,10 +63,10 @@ export const updateUser = (req: Request, res: Response, next: NextFunction) => {
       res.send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         next(new BadRequestError('Введены некорректные данные'));
       } else {
-        next();
+        next(err);
       }
     });
 };
@@ -79,10 +86,10 @@ export const updateAvatar = (req: Request, res: Response, next: NextFunction) =>
       res.send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
+      if (err.name === 'CastError') {
         next(new BadRequestError('Введены некорректные данные'));
       } else {
-        next();
+        next(err);
       }
     });
 };
