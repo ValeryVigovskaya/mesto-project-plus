@@ -35,7 +35,8 @@
             {
                 "js": "never",
                 "ts": "never"
-            }
+            },
+            {"devDependencies": true}
         ]
     }
 }
