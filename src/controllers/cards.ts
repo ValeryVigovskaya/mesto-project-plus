@@ -13,10 +13,10 @@ export const getCards = (req: Request, res: Response, next: NextFunction) => {
 
 export const createCard = (req: Request, res: Response, next: NextFunction) => {
   const { name, link } = req.body;
+  const { _id } = req.user;
   // записываем данные в базу
   return (
-    // eslint-disable-next-line no-underscore-dangle
-    Card.create({ name, link, owner: req.user._id })
+    Card.create({ name, link, owner: _id })
       // возвращаем записанные в базу данные пользователю
       .then((card) => res.status(CREATED).send({ data: card }))
       // если данные не записались, вернём ошибку
@@ -31,10 +31,16 @@ export const createCard = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
-  Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => {
+  const { _id } = req.user;
+  Card.findById(req.params.cardId)
+    .then(async (card) => {
       if (!card) {
         throw new NotFoundError('Запрашиваемая карточка не найдена');
+      }
+      if(card.owner.toString() !== _id){
+        throw new NotFoundError('Запрашиваемая карточка создана другим пользователем');
+      } else {
+       await Card.findByIdAndRemove(req.params.cardId);
       }
       res.send({ data: card });
     })
@@ -42,10 +48,10 @@ export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const likeCard = (req: Request, res: Response, next: NextFunction) => {
+  const { _id } = req.user;
   Card.findByIdAndUpdate(
     req.params.cardId,
-    // eslint-disable-next-line no-underscore-dangle
-    { $addToSet: { likes: req.user._id } }, // добавить _id в массив, если его там нет
+    { $addToSet: { likes: _id } }, // добавить _id в массив, если его там нет
     { new: true },
   )
     .then((card) => {
@@ -58,10 +64,10 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const dislikeCard = (req: Request, res: Response, next: NextFunction) => {
+  const { _id } = req.user;
   Card.findByIdAndUpdate(
     req.params.cardId,
-    // eslint-disable-next-line no-underscore-dangle
-    { $pull: { likes: req.user._id } }, // убрать _id из массива
+    { $pull: { likes: _id } }, // убрать _id из массива
     { new: true },
   )
     .then((card) => {
