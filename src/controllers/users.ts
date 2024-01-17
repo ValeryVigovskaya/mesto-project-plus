@@ -39,13 +39,7 @@ export const getUserMe = async (req: Request, res: Response, next: NextFunction)
       }
       res.send({ data: user });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError('Введены некорректные данные'));
-      } else {
-        next(err);
-      }
-    });
+    .catch(next);
 };
 
 export const createUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -85,7 +79,6 @@ export const updateUser = (req: Request, res: Response, next: NextFunction) => {
   return User.findByIdAndUpdate(_id, { name, about }, {
     new: true,
     runValidators: true,
-    upsert: true,
   })
     .then((user) => {
       if (!user) {
@@ -94,7 +87,7 @@ export const updateUser = (req: Request, res: Response, next: NextFunction) => {
       res.send({ data: user });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
         next(new BadRequestError('Введены некорректные данные'));
       } else {
         next(err);

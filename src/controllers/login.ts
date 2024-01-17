@@ -15,12 +15,6 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
     })
     .json({ message: "Logged in successfully" });
   })
-  .catch((err) => {
-    if (err.name === 'CastError') {
-      next(new UnauthorizedError('Неправильные почта или пароль'));
-    } else {
-      next(err);
-    }
-  });
+  .catch(next);
 };
 
