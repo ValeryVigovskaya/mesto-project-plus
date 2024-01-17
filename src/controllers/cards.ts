@@ -3,6 +3,7 @@ import Card from '../models/card';
 import NotFoundError from '../errors/not-found-err';
 import BadRequestError from '../errors/bad-request-err';
 import { CREATED } from '../constants/constants';
+import ForbiddenError from '../errors/forbidden-err';
 
 export const getCards = (req: Request, res: Response, next: NextFunction) => {
   Card.find({})
@@ -33,18 +34,27 @@ export const createCard = (req: Request, res: Response, next: NextFunction) => {
 export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
   const { _id } = req.user;
   Card.findById(req.params.cardId)
-    .then(async (card) => {
+    .then((card) => {
       if (!card) {
         throw new NotFoundError('Запрашиваемая карточка не найдена');
       }
       if(card.owner.toString() !== _id){
-        throw new NotFoundError('Запрашиваемая карточка создана другим пользователем');
-      } else {
-       await Card.findByIdAndRemove(req.params.cardId);
+        throw new ForbiddenError('Запрашиваемая карточка создана другим пользователем');
       }
-      res.send({ data: card });
     })
-    .catch(next);
+    .then(() => {
+        Card.findByIdAndRemove(req.params.cardId)
+         .then((card) => {
+           res.send({ data: card });
+      })
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Введены некорректные данные'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 export const likeCard = (req: Request, res: Response, next: NextFunction) => {
@@ -60,7 +70,13 @@ export const likeCard = (req: Request, res: Response, next: NextFunction) => {
       }
       res.send({ data: card });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Введены некорректные данные'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 export const dislikeCard = (req: Request, res: Response, next: NextFunction) => {
@@ -76,5 +92,11 @@ export const dislikeCard = (req: Request, res: Response, next: NextFunction) => 
       }
       res.send({ data: card });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Введены некорректные данные'));
+      } else {
+        next(err);
+      }
+    });
 };

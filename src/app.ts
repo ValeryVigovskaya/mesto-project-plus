@@ -14,12 +14,13 @@ import cookieParser from 'cookie-parser';
 import { requestLogger, errorLogger } from './middlewares/logger';
 import { celebrate, Joi, Segments, errors } from 'celebrate';
 
+require('dotenv').config();
 // Слушаем 3000 порт
 const { PORT = 3000 } = process.env;
 const app = express();
 
 mongoose.set('strictQuery', false);
-mongoose.connect('mongodb://localhost:27017/mestodb');
+mongoose.connect(process.env.MONGOOSE_URL_DEFAULT as string);
 
 app.use(requestLogger);
 app.use(express.json());
@@ -34,7 +35,9 @@ app.post('/signup', celebrate({
     password: Joi.string().required(),
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(200),
-    avatar: Joi.string(),
+    avatar: Joi.string().uri({
+      scheme: ['http', 'https']
+    }),
   }),
 }), createUser);
 app.post('/signin', celebrate({
@@ -57,11 +60,12 @@ app.use('/users', userRouter);
 
 app.use('/cards', cardRouter);
 
-app.use(errorLogger);
-
 app.use('*', (req: Request, res: Response, next: NextFunction)=> {
   next(new NotFoundError('Запрашиваемый ресурс не найден'));
 });
+
+app.use(errorLogger);
+
 app.use(errors());
 
 app.use(errorHandler);
