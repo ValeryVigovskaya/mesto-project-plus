@@ -22,7 +22,7 @@ const cardSchema = new Schema<ICard>({
     validate: {
       validator: (v: string) => validator.isURL(v),
       message: 'Некорректный URL',
-    }
+    },
   },
   owner: {
     type: Schema.Types.ObjectId,

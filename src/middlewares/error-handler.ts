@@ -1,5 +1,5 @@
-import { NextFunction, Request, Response } from "express";
-import { INTERNAL_SERVER_ERROR, NOT_FOUND } from "../constants/constants";
+import { Request, Response } from 'express';
+import { INTERNAL_SERVER_ERROR } from '../constants/constants';
 
 interface ICustomError extends Error {
   statusCode: number;
@@ -8,7 +8,6 @@ export const errorHandler = (
   err: ICustomError,
   req: Request,
   res: Response,
-  next: NextFunction
 ) => {
   const { statusCode = INTERNAL_SERVER_ERROR, message } = err;
   res
@@ -19,3 +18,5 @@ export const errorHandler = (
         ? 'На сервере произошла ошибка' : message,
     });
 };
+
+export default { errorHandler };

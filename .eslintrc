@@ -29,14 +29,16 @@
         ]
     },
     "rules": {
+        "no-underscore-dangle":  ["error", { "allow": ["_id"] }],
         "import/extensions": [
             "error",
             "ignorePackages",
             {
                 "js": "never",
                 "ts": "never"
-            },
-            {"devDependencies": true}
-        ]
+            }
+            // {"devDependencies": true}
+        ],
+        "no-unused-vars": ["error", { "vars": "all", "args": "none" }]
     }
 }
