@@ -1,12 +1,12 @@
 import { Router } from 'express';
+import { celebrate, Joi } from 'celebrate';
 import {
   getUsers,
   getUserById,
   updateUser,
   updateAvatar,
-  getUserMe
+  getUserMe,
 } from '../controllers/users';
-import { celebrate, Joi } from 'celebrate';
 
 const router = Router();
 
@@ -30,7 +30,7 @@ router.patch('/me', celebrate({
 router.patch('/me/avatar', celebrate({
   body: Joi.object().keys({
     avatar: Joi.string().uri({
-      scheme: ['http', 'https']
+      scheme: ['http', 'https'],
     }).required(),
   }),
 }), updateAvatar);

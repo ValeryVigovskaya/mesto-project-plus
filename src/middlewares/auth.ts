@@ -3,13 +3,13 @@ import jwt from 'jsonwebtoken';
 import UnauthorizedError from '../errors/not-auth-err';
 
 export default (req: Request, res: Response, next: NextFunction) => {
-  const { access_token } = req.cookies;
-  if (!access_token || !access_token.startsWith('Bearer ')) {
+  const { accessToken } = req.cookies;
+  if (!accessToken || !accessToken.startsWith('Bearer ')) {
     return next(new UnauthorizedError('Необходима авторизация'));
   }
-  const token = access_token.replace('Bearer ', '');
+  const token = accessToken.replace('Bearer ', '');
 
-  let payload
+  let payload;
   try {
     payload = jwt.verify(token, 'super-strong-secret');
   } catch (err) {
@@ -18,5 +18,5 @@ export default (req: Request, res: Response, next: NextFunction) => {
 
   req.user = payload as {_id: string};// записываем пейлоуд в объект запроса
 
-return next(); // пропускаем запрос дальше
+  return next(); // пропускаем запрос дальше
 };

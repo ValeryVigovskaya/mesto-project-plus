@@ -38,15 +38,16 @@ export const deleteCard = (req: Request, res: Response, next: NextFunction) => {
       if (!card) {
         throw new NotFoundError('Запрашиваемая карточка не найдена');
       }
-      if(card.owner.toString() !== _id){
+      if (card.owner.toString() !== _id) {
         throw new ForbiddenError('Запрашиваемая карточка создана другим пользователем');
       }
     })
     .then(() => {
-        Card.findByIdAndRemove(req.params.cardId)
-         .then((card) => {
-           res.send({ data: card });
-      })
+      Card.findByIdAndRemove(req.params.cardId)
+        .then((card) => {
+          res.send({ data: card });
+        })
+        .catch(next);
     })
     .catch((err) => {
       if (err.name === 'CastError') {

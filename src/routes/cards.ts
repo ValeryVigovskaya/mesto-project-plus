@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { celebrate, Joi } from 'celebrate';
 import {
   getCards,
   createCard,
@@ -6,7 +7,6 @@ import {
   likeCard,
   dislikeCard,
 } from '../controllers/cards';
-import { celebrate, Joi } from 'celebrate';
 
 const router = Router();
 
@@ -16,7 +16,7 @@ router.post('/', celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
     link: Joi.string().uri({
-      scheme: ['http', 'https']
+      scheme: ['http', 'https'],
     }).required(),
   }),
 }), createCard);

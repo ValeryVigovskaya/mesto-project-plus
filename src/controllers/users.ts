@@ -1,11 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
+import bcrypt from 'bcrypt';
 import User from '../models/user';
 import NotFoundError from '../errors/not-found-err';
 import BadRequestError from '../errors/bad-request-err';
 import ConflictError from '../errors/conflict-err';
 import { CREATED } from '../constants/constants';
-import bcrypt from 'bcrypt';
-
 
 export const getUsers = (req: Request, res: Response, next: NextFunction) => {
   User.find({})
@@ -14,7 +13,7 @@ export const getUsers = (req: Request, res: Response, next: NextFunction) => {
 };
 
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
-  return User.findById(req.params.userId)
+  User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
         throw new NotFoundError('Запрашиваемый пользователь не найден');
@@ -46,30 +45,32 @@ export const createUser = async (req: Request, res: Response, next: NextFunction
   const { email, password } = req.body;
   // записываем данные в базу
   return bcrypt.hash(password, 10)
-      .then(hash => User.create({
-        email: email,
-        password: hash,
-      }))
-      .then((user) => {
-        const { _id, email, name, about, avatar } = user;
-        res.status(CREATED).send({
-          _id,
-          email,
-          name,
-          about,
-          avatar
-        });
-      })
-      // если данные не записались, вернём ошибку
-      .catch((err) => {
-        if (err.name === 'ValidationError') {
-          next(new BadRequestError('Введены некорректные данные'));
-        } else if (err.code === 11000){
-          next(new ConflictError('Пользователь с такой почтой уже существует'))
-        } else {
-          next(err);
-        }
-      })
+    .then((hash) => User.create({
+      email,
+      password: hash,
+    }))
+    .then((user) => {
+      const {
+        _id, name, about, avatar,
+      } = user;
+      res.status(CREATED).send({
+        _id,
+        email,
+        name,
+        about,
+        avatar,
+      });
+    })
+    // если данные не записались, вернём ошибку
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError('Введены некорректные данные'));
+      } else if (err.code === 11000) {
+        next(new ConflictError('Пользователь с такой почтой уже существует'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 export const updateUser = (req: Request, res: Response, next: NextFunction) => {
@@ -101,7 +102,6 @@ export const updateAvatar = (req: Request, res: Response, next: NextFunction) =>
   return User.findByIdAndUpdate(_id, { avatar }, {
     new: true,
     runValidators: true,
-    upsert: true,
   })
     .then((user) => {
       if (!user) {
